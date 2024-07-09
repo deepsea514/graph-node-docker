@@ -1,0 +1,39 @@
+services:
+  ipfs:
+    image: ipfs/go-ipfs:v0.10.0
+    ports:
+      - "5001:5001"
+    volumes:
+      - ipfs_data:/data/ipfs
+
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_PASSWORD: postgres_user
+      POSTGRES_USER: postgres_user
+      POSTGRES_DB: graph-node
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  graph-node:
+    image: graphprotocol/graph-node:latest
+    ports:
+      - "8000:8000"
+      - "8030:8030"
+      - "8020:8020"
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: postgres_user
+      postgres_pass: postgres_user
+      postgres_db: graph-node
+      ipfs: "http://ipfs:5001"
+      ethereum: "mainnet:https://rpc.merkle.io/1/sk_mbs_893a7e28c8bd4927c2111f551475b7ac"
+
+volumes:
+  ipfs_data:
+  postgres_data:
